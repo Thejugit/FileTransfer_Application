@@ -43,7 +43,9 @@ function App() {
         type: 'text',
         content: textContent,
         timestamp: Date.now(),
-        expiresAt: Date.now() + (30 * 60 * 1000)
+        expiresAt: Date.now() + (30 * 60 * 1000),
+        downloadCount: 0,
+        maxDownloads: 5
       });
 
       setStatus('Text uploaded! Receiver can retrieve now.');
@@ -87,16 +89,24 @@ function App() {
       }
 
       setReceivedText(data.content);
-      setStatus('Text retrieved successfully!');
+      
+      // Increment download count
+      const newDownloadCount = (data.downloadCount || 0) + 1;
+      const remainingDownloads = (data.maxDownloads || 5) - newDownloadCount;
+      
+      setStatus(`Text retrieved successfully! (${remainingDownloads} downloads remaining)`);
       setProgress(100);
 
-      setTimeout(async () => {
-        try {
+      // Update download count or remove if limit reached
+      try {
+        if (newDownloadCount >= (data.maxDownloads || 5)) {
           await remove(transferRef);
-        } catch (error) {
-          console.error('Cleanup error:', error);
+        } else {
+          await set(transferRef, { ...data, downloadCount: newDownloadCount });
         }
-      }, 5000);
+      } catch (error) {
+        console.error('Update error:', error);
+      }
 
     } catch (error) {
       console.error('Error:', error);
@@ -148,7 +158,9 @@ function App() {
           fileType: selectedFile.type,
           fileData: base64Data,
           timestamp: Date.now(),
-          expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes
+          expiresAt: Date.now() + (30 * 60 * 1000), // 30 minutes
+          downloadCount: 0,
+          maxDownloads: 5
         });
 
         setStatus('File uploaded! Receiver can download now.');
@@ -219,17 +231,23 @@ function App() {
       a.click();
       URL.revokeObjectURL(url);
 
-      setStatus('Download complete!');
+      // Increment download count
+      const newDownloadCount = (data.downloadCount || 0) + 1;
+      const remainingDownloads = (data.maxDownloads || 5) - newDownloadCount;
+      
+      setStatus(`Download complete! (${remainingDownloads} downloads remaining)`);
       setProgress(100);
 
-      // Clean up after 5 seconds
-      setTimeout(async () => {
-        try {
+      // Update download count or remove if limit reached
+      try {
+        if (newDownloadCount >= (data.maxDownloads || 5)) {
           await remove(transferRef);
-        } catch (error) {
-          console.error('Cleanup error:', error);
+        } else {
+          await set(transferRef, { ...data, downloadCount: newDownloadCount });
         }
-      }, 5000);
+      } catch (error) {
+        console.error('Update error:', error);
+      }
 
     } catch (error) {
       console.error('Error:', error);
