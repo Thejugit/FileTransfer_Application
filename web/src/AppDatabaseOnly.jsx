@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ref as dbRef, set, get, remove } from 'firebase/database';
+import React, { useState, useEffect } from 'react';
+import { ref as dbRef, set, get, remove, onValue, onDisconnect, serverTimestamp } from 'firebase/database';
 import { database } from './firebase';
 import './App.css';
 
@@ -13,6 +13,7 @@ function App() {
   const [progress, setProgress] = useState(0);
   const [textContent, setTextContent] = useState('');
   const [receivedText, setReceivedText] = useState('');
+  const [liveUsers, setLiveUsers] = useState(0);
 
   const generateCode = () => {
     return Math.floor(1000 + Math.random() * 9000).toString();
@@ -533,6 +534,12 @@ function App() {
         <button className="btn btn-secondary" onClick={reset}>
           {progress === 100 ? `Transfer Another ${transferType === 'file' ? 'File' : 'Text'}` : 'Cancel'}
         </button>
+      </div>
+
+      {/* Live Users Bubble */}
+      <div className="live-users-bubble">
+        <div className="pulse-dot"></div>
+        <span>{liveUsers} online</span>
       </div>
     </div>
   );
