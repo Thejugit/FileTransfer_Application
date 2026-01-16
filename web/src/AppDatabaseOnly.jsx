@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ref as dbRef, set, get, remove, onValue } from 'firebase/database';
+import React, { useState } from 'react';
+import { ref as dbRef, set, get, remove } from 'firebase/database';
 import { database } from './firebase';
 import './App.css';
 
@@ -13,46 +13,6 @@ function App() {
   const [progress, setProgress] = useState(0);
   const [textContent, setTextContent] = useState('');
   const [receivedText, setReceivedText] = useState('');
-  const [liveUsers, setLiveUsers] = useState(0);
-
-  // Track live users presence
-  useEffect(() => {
-    // Generate unique user session ID
-    const sessionId = `user_${Math.random().toString(36).substr(2, 9)}_${Date.now()}`;
-    const userRef = dbRef(database, `presence/${sessionId}`);
-    const usersCountRef = dbRef(database, 'presence');
-
-    // Set user as online immediately
-    const setUserOnline = async () => {
-      try {
-        await set(userRef, {
-          online: true,
-          timestamp: Date.now()
-        });
-        console.log('User presence set:', sessionId);
-      } catch (error) {
-        console.error('Error setting presence:', error);
-      }
-    };
-
-    setUserOnline();
-
-    // Listen for presence changes
-    const unsubscribe = onValue(usersCountRef, (snapshot) => {
-      const users = snapshot.val();
-      const count = users ? Object.keys(users).length : 0;
-      setLiveUsers(count);
-      console.log('Live users count:', count);
-    }, (error) => {
-      console.error('Error reading presence:', error);
-    });
-
-    // Cleanup on unmount
-    return () => {
-      unsubscribe();
-      remove(userRef).catch(err => console.error('Cleanup error:', err));
-    };
-  }, []);
 
   const generateCode = () => {
     return Math.floor(1000 + Math.random() * 9000).toString();
@@ -402,12 +362,6 @@ function App() {
             </button>
           </div>
         </div>
-
-        {/* Live Users Bubble */}
-        <div className="live-users-bubble">
-          <div className="pulse-dot"></div>
-          <span>{liveUsers} online</span>
-        </div>
       </div>
     );
   }
@@ -457,12 +411,6 @@ function App() {
               Back
             </button>
           </div>
-        </div>
-
-        {/* Live Users Bubble */}
-        <div className="live-users-bubble">
-          <div className="pulse-dot"></div>
-          <span>{liveUsers} online</span>
         </div>
       </div>
     );
@@ -585,12 +533,6 @@ function App() {
         <button className="btn btn-secondary" onClick={reset}>
           {progress === 100 ? `Transfer Another ${transferType === 'file' ? 'File' : 'Text'}` : 'Cancel'}
         </button>
-      </div>
-
-      {/* Live Users Bubble */}
-      <div className="live-users-bubble">
-        <div className="pulse-dot"></div>
-        <span>{liveUsers} online</span>
       </div>
     </div>
   );
