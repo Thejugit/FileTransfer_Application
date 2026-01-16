@@ -363,6 +363,12 @@ function App() {
             </button>
           </div>
         </div>
+
+        {/* Live Users Bubble */}
+        <div className="live-users-bubble">
+          <div className="pulse-dot"></div>
+          <span>{liveUsers} online</span>
+        </div>
       </div>
     );
   }
@@ -412,6 +418,12 @@ function App() {
               Back
             </button>
           </div>
+        </div>
+
+        {/* Live Users Bubble */}
+        <div className="live-users-bubble">
+          <div className="pulse-dot"></div>
+          <span>{liveUsers} online</span>
         </div>
       </div>
     );
