@@ -43,9 +43,9 @@ function App() {
         type: 'text',
         content: textContent,
         timestamp: Date.now(),
-        expiresAt: Date.now() + (30 * 60 * 1000),
-        downloadCount: 0,
-        maxDownloads: 5
+        expiresAt: Date.now() + (2 * 60 * 1000), // 2 minutes
+        devices: [],
+        maxDevices: 5
       });
 
       setStatus('Text uploaded! Receiver can retrieve now.');
@@ -90,23 +90,45 @@ function App() {
 
       setReceivedText(data.content);
       
-      // Increment download count
-      const newDownloadCount = (data.downloadCount || 0) + 1;
-      const remainingDownloads = (data.maxDownloads || 5) - newDownloadCount;
-      
-      setStatus(`Text retrieved successfully! (${remainingDownloads} downloads remaining)`);
-      setProgress(100);
-
-      // Update download count or remove if limit reached
-      try {
-        if (newDownloadCount >= (data.maxDownloads || 5)) {
-          await remove(transferRef);
-        } else {
-          await set(transferRef, { ...data, downloadCount: newDownloadCount });
-        }
-      } catch (error) {
-        console.error('Update error:', error);
+      // Generate unique device ID if not exists
+      let deviceId = localStorage.getItem('deviceId');
+      if (!deviceId) {
+        deviceId = `device_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('deviceId', deviceId);
       }
+      
+      const devices = data.devices || [];
+      const deviceCount = devices.length;
+      const maxDevices = data.maxDevices || 5;
+      
+      // Check if device already downloaded
+      if (!devices.includes(deviceId)) {
+        // Check device limit
+        if (deviceCount >= maxDevices) {
+          setStatus('Device limit reached (5 devices max)');
+          return;
+        }
+        
+        devices.push(deviceId);
+        const remainingSlots = maxDevices - devices.length;
+        
+        setStatus(`Text retrieved! (${remainingSlots} device${remainingSlots !== 1 ? 's' : ''} remaining)`);
+        
+        // Update devices list or remove if limit reached
+        try {
+          if (devices.length >= maxDevices) {
+            await remove(transferRef);
+          } else {
+            await set(transferRef, { ...data, devices });
+          }
+        } catch (error) {
+          console.error('Update error:', error);
+        }
+      } else {
+        setStatus('Text retrieved! (Already downloaded on this device)');
+      }
+      
+      setProgress(100);
 
     } catch (error) {
       console.error('Error:', error);
@@ -158,9 +180,9 @@ function App() {
           fileType: selectedFile.type,
           fileData: base64Data,
           timestamp: Date.now(),
-          expiresAt: Date.now() + (30 * 60 * 1000), // 30 minutes
-          downloadCount: 0,
-          maxDownloads: 5
+          expiresAt: Date.now() + (2 * 60 * 1000), // 2 minutes
+          devices: [],
+          maxDevices: 5
         });
 
         setStatus('File uploaded! Receiver can download now.');
@@ -214,6 +236,29 @@ function App() {
         return;
       }
 
+      // Generate unique device ID if not exists
+      let deviceId = localStorage.getItem('deviceId');
+      if (!deviceId) {
+        deviceId = `device_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('deviceId', deviceId);
+      }
+      
+      const devices = data.devices || [];
+      const deviceCount = devices.length;
+      const maxDevices = data.maxDevices || 5;
+      
+      // Check if device already downloaded
+      const alreadyDownloaded = devices.includes(deviceId);
+      
+      if (!alreadyDownloaded) {
+        // Check device limit
+        if (deviceCount >= maxDevices) {
+          setStatus('Device limit reached (5 devices max)');
+          setProgress(0);
+          return;
+        }
+      }
+
       setStatus(`Downloading: ${data.fileName}`);
       setProgress(50);
 
@@ -231,23 +276,27 @@ function App() {
       a.click();
       URL.revokeObjectURL(url);
 
-      // Increment download count
-      const newDownloadCount = (data.downloadCount || 0) + 1;
-      const remainingDownloads = (data.maxDownloads || 5) - newDownloadCount;
-      
-      setStatus(`Download complete! (${remainingDownloads} downloads remaining)`);
-      setProgress(100);
-
-      // Update download count or remove if limit reached
-      try {
-        if (newDownloadCount >= (data.maxDownloads || 5)) {
-          await remove(transferRef);
-        } else {
-          await set(transferRef, { ...data, downloadCount: newDownloadCount });
+      if (!alreadyDownloaded) {
+        devices.push(deviceId);
+        const remainingSlots = maxDevices - devices.length;
+        
+        setStatus(`Download complete! (${remainingSlots} device${remainingSlots !== 1 ? 's' : ''} remaining)`);
+        
+        // Update devices list or remove if limit reached
+        try {
+          if (devices.length >= maxDevices) {
+            await remove(transferRef);
+          } else {
+            await set(transferRef, { ...data, devices });
+          }
+        } catch (error) {
+          console.error('Update error:', error);
         }
-      } catch (error) {
-        console.error('Update error:', error);
+      } else {
+        setStatus('Download complete! (Already downloaded on this device)');
       }
+      
+      setProgress(100);
 
     } catch (error) {
       console.error('Error:', error);
@@ -295,7 +344,12 @@ function App() {
           </p>
           {transferType === 'file' && (
             <p className="subtitle" style={{fontSize: '0.85rem', color: '#666'}}>
-              Free tier: Max 10MB per file
+              Max 10MB | 2 min expiry | 5 devices
+            </p>
+          )}
+          {transferType === 'text' && (
+            <p className="subtitle" style={{fontSize: '0.85rem', color: '#666'}}>
+              2 min expiry | 5 devices max
             </p>
           )}
           
