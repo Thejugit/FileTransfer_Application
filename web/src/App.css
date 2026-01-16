@@ -1,0 +1,354 @@
+.container {
+  width: 100%;
+}
+
+.navbar {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 20px;
+  background: #0A0A0A;
+  border-radius: 8px;
+  padding: 4px;
+  border: 1px solid #1A1A1A;
+}
+
+.nav-btn {
+  flex: 1;
+  padding: 14px 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: transparent;
+  color: #666;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  letter-spacing: 1px;
+}
+
+.nav-btn.active {
+  background: #76B900;
+  color: #000;
+  box-shadow: 0 0 15px rgba(118, 185, 0, 0.3);
+}
+
+.nav-btn:not(.active):hover {
+  background: #1A1A1A;
+  color: #76B900;
+}
+
+.card {
+  background: #0A0A0A;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 0 30px rgba(118, 185, 0, 0.2);
+  text-align: center;
+  border: 1px solid #1A1A1A;
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  color: #76B900;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  color: #888;
+  margin-bottom: 30px;
+  font-size: 1rem;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 16px 32px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  letter-spacing: 0.5px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #76B900;
+  color: #000;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #8CD900;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(118, 185, 0, 0.3);
+}
+
+.btn-secondary {
+  background: #1A1A1A;
+  color: #76B900;
+  border: 1px solid #2A2A2A;
+}
+
+.btn-secondary:hover {
+  background: #2A2A2A;
+  border-color: #76B900;
+}
+
+.code-input {
+  width: 100%;
+  padding: 20px;
+  font-size: 2rem;
+  text-align: center;
+  border: 2px solid #2A2A2A;
+  border-radius: 8px;
+  margin: 20px 0;
+  letter-spacing: 0.8em;
+  font-weight: bold;
+  background: #0A0A0A;
+  color: #76B900;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.code-input:focus {
+  outline: none;
+  border-color: #76B900;
+  box-shadow: 0 0 20px rgba(118, 185, 0, 0.2);
+}
+
+.code-display {
+  background: #0A0A0A;
+  padding: 30px;
+  border-radius: 12px;
+  margin: 20px 0;
+  border: 2px solid #76B900;
+  box-shadow: 0 0 30px rgba(118, 185, 0, 0.1);
+}
+
+.code-label {
+  color: #888;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.code-value {
+  color: #76B900;
+  font-size: 3rem;
+  font-weight: bold;
+  letter-spacing: 0.5em;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.status {
+  padding: 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+  background: #0A0A0A;
+  color: #888;
+  font-size: 0.95rem;
+  border: 1px solid #1A1A1A;
+}
+
+.status.connected {
+  background: #0A0A0A;
+  color: #76B900;
+  font-weight: 600;
+  border-color: #76B900;
+}
+
+.file-section {
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.file-info {
+  background: #0A0A0A;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #2A2A2A;
+}
+
+.file-name {
+  font-weight: 600;
+  color: #76B900;
+  margin-bottom: 5px;
+  word-break: break-all;
+}
+
+.file-size {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.progress-section {
+  margin: 20px 0;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background: #1A1A1A;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  border: 1px solid #2A2A2A;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #76B900;
+  transition: width 0.3s ease;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(118, 185, 0, 0.5);
+}
+
+.progress-text {
+  color: #888;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.success-message {
+  background: #0A0A0A;
+  color: #76B900;
+  padding: 20px;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 20px 0;
+  border: 2px solid #76B900;
+  box-shadow: 0 0 20px rgba(118, 185, 0, 0.2);
+}
+
+.success-message {
+  background: #0A0A0A;
+  color: #76B900;
+  padding: 20px;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 20px 0;
+  border: 2px solid #76B900;
+  box-shadow: 0 0 20px rgba(118, 185, 0, 0.2);
+}
+
+.text-section {
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.text-input {
+  width: 100%;
+  padding: 16px;
+  font-size: 1rem;
+  border: 2px solid #2A2A2A;
+  border-radius: 8px;
+  background: #0A0A0A;
+  color: #76B900;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  resize: vertical;
+  min-height: 200px;
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: #76B900;
+  box-shadow: 0 0 20px rgba(118, 185, 0, 0.2);
+}
+
+.text-input::placeholder {
+  color: #444;
+}
+
+.received-text {
+  background: #0A0A0A;
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px solid #76B900;
+  box-shadow: 0 0 20px rgba(118, 185, 0, 0.1);
+}
+
+.text-label {
+  color: #888;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+}
+
+.text-display {
+  color: #76B900;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.text-display::-webkit-scrollbar {
+  width: 8px;
+}
+
+.text-display::-webkit-scrollbar-track {
+  background: #1A1A1A;
+  border-radius: 4px;
+}
+
+.text-display::-webkit-scrollbar-thumb {
+  background: #76B900;
+  border-radius: 4px;
+}
+
+.text-display::-webkit-scrollbar-thumb:hover {
+  background: #8CD900;
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 30px 20px;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  .code-value {
+    font-size: 2.5rem;
+  }
+
+  .nav-btn {
+    padding: 12px 16px;
+    font-size: 0.85rem;
+  }
+
+  .text-input {
+    min-height: 150px;
+    font-size: 0.95rem;
+  }
+
+  .text-display {
+    font-size: 0.95rem;
+  }
+}
