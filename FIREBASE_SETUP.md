@@ -108,10 +108,23 @@ service firebase.storage {
         ".read": true,
         ".indexOn": ["timestamp"]
       }
+    },
+    "presence": {
+      "$sessionId": {
+        ".write": true,
+        ".read": true
+      }
     }
   }
 }
 ```
+
+**IMPORTANT: Update your Realtime Database rules NOW for live users counter to work:**
+
+1. Go to Firebase Console → Realtime Database
+2. Click the "Rules" tab
+3. Replace with the rules above
+4. Click "Publish"
 
 ## Features
 
