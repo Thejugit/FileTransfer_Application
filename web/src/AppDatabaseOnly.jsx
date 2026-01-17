@@ -273,19 +273,32 @@ function App() {
       }];
 
       // Download all files
-      for (const fileInfo of filesToDownload) {
+      for (let i = 0; i < filesToDownload.length; i++) {
+        const fileInfo = filesToDownload[i];
+        
+        setStatus(`Downloading: ${fileInfo.fileName} (${i + 1}/${filesToDownload.length})`);
+        
         const response = await fetch(fileInfo.fileData);
         const blob = await response.blob();
         
-        const url = URL.createObjectURL(blob);
+        // Create blob with correct type
+        const typedBlob = new Blob([blob], { type: fileInfo.fileType || blob.type });
+        const url = URL.createObjectURL(typedBlob);
+        
         const a = document.createElement('a');
         a.href = url;
-        a.download = fileInfo.fileName;
+        a.download = fileInfo.fileName || `file_${i + 1}`;
+        document.body.appendChild(a);
         a.click();
-        URL.revokeObjectURL(url);
+        document.body.removeChild(a);
         
-        // Small delay between downloads
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Cleanup and delay between downloads
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+        
+        // Wait 500ms between downloads to avoid browser blocking
+        if (i < filesToDownload.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
       }
       
       setProgress(80);
