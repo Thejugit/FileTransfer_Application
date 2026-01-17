@@ -9,7 +9,7 @@ function App() {
   const [code, setCode] = useState('');
   const [inputCode, setInputCode] = useState('');
   const [status, setStatus] = useState('');
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [progress, setProgress] = useState(0);
   const [textContent, setTextContent] = useState('');
   const [receivedText, setReceivedText] = useState('');
@@ -142,59 +142,63 @@ function App() {
   };
 
   const handleFileSelect = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      // Check file size (max 10MB for free tier)
-      if (file.size > 10 * 1024 * 1024) {
-        alert('File too large! Maximum 10MB on free tier.');
+    const files = Array.from(event.target.files);
+    if (files.length > 0) {
+      // Check total file size (max 10MB for free tier)
+      const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+      if (totalSize > 10 * 1024 * 1024) {
+        alert('Total files too large! Maximum 10MB combined on free tier.');
         return;
       }
-      setSelectedFile(file);
+      setSelectedFiles(files);
     }
   };
 
   const sendFile = async () => {
-    if (!selectedFile || !code) {
-      alert('Please select a file');
+    if (!selectedFiles.length || !code) {
+      alert('Please select files');
       return;
     }
 
     try {
-      setStatus(`Encoding: ${selectedFile.name}...`);
+      setStatus(`Encoding ${selectedFiles.length} file(s)...`);
       setProgress(10);
 
-      // Read file as base64
-      const reader = new FileReader();
-      
-      reader.onload = async (e) => {
-        const base64Data = e.target.result;
-        
-        setStatus(`Uploading to database...`);
-        setProgress(50);
-
-        // Store in Realtime Database
-        await set(dbRef(database, `transfers/${code}`), {
-          type: 'file',
-          fileName: selectedFile.name,
-          fileSize: selectedFile.size,
-          fileType: selectedFile.type,
-          fileData: base64Data,
-          timestamp: Date.now(),
-          expiresAt: Date.now() + (2 * 60 * 1000), // 2 minutes
-          devices: [],
-          maxDevices: 5
+      // Process all files
+      const filesData = [];
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const base64Data = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
         });
 
-        setStatus('File uploaded! Receiver can download now.');
-        setProgress(100);
-      };
+        filesData.push({
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+          fileData: base64Data
+        });
+      }
 
-      reader.onerror = () => {
-        setStatus('Error reading file');
-      };
+      setStatus(`Uploading ${selectedFiles.length} file(s) to database...`);
+      setProgress(50);
 
-      reader.readAsDataURL(selectedFile);
-      
+      // Store in Realtime Database
+      await set(dbRef(database, `transfers/${code}`), {
+        type: 'file',
+        files: filesData,
+        fileCount: selectedFiles.length,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + (2 * 60 * 1000), // 2 minutes
+        devices: [],
+        maxDevices: 5
+      });
+
+      setStatus(`${selectedFiles.length} file(s) uploaded! Receiver can download now.`);
+      setProgress(100);
     } catch (error) {
       console.error('Error:', error);
       setStatus('Error: ' + error.message);
@@ -259,22 +263,32 @@ function App() {
         }
       }
 
-      setStatus(`Downloading: ${data.fileName}`);
+      setStatus(`Downloading: ${data.fileCount || 1} file(s)`);
       setProgress(50);
 
-      // Convert base64 to blob
-      const response = await fetch(data.fileData);
-      const blob = await response.blob();
+      // Handle multiple files or single file
+      const filesToDownload = data.files || [{
+        fileName: data.fileName,
+        fileData: data.fileData
+      }];
+
+      // Download all files
+      for (const fileInfo of filesToDownload) {
+        const response = await fetch(fileInfo.fileData);
+        const blob = await response.blob();
+        
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileInfo.fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        // Small delay between downloads
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
       
       setProgress(80);
-
-      // Download file
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = data.fileName;
-      a.click();
-      URL.revokeObjectURL(url);
 
       if (!alreadyDownloaded) {
         devices.push(deviceId);
@@ -309,7 +323,7 @@ function App() {
     setCode('');
     setInputCode('');
     setStatus('');
-    setSelectedFile(null);
+    setSelectedFiles([]);
     setProgress(0);
     setTextContent('');
     setReceivedText('');
@@ -448,16 +462,17 @@ function App() {
           </div>
         )}
         
-        {mode === 'send' && transferType === 'file' && !selectedFile && (
+        {mode === 'send' && transferType === 'file' && selectedFiles.length === 0 && (
           <div className="file-section">
             <input
               type="file"
               id="file-input"
               onChange={handleFileSelect}
+              multiple
               style={{ display: 'none' }}
             />
             <label htmlFor="file-input" className="btn btn-secondary">
-              Choose File (Max 10MB)
+              Choose Files (Max 10MB total)
             </label>
           </div>
         )}
@@ -481,16 +496,24 @@ function App() {
           </div>
         )}
         
-        {selectedFile && progress === 0 && (
+        {selectedFiles.length > 0 && progress === 0 && (
           <div className="file-section">
-            <div className="file-info">
-              <div className="file-name">{selectedFile.name}</div>
+            {selectedFiles.map((file, index) => (
+              <div key={index} className="file-info">
+                <div className="file-name">{file.name}</div>
+                <div className="file-size">
+                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                </div>
+              </div>
+            ))}
+            <div className="file-info" style={{marginTop: '10px', borderColor: '#76B900'}}>
+              <div className="file-name">Total: {selectedFiles.length} file(s)</div>
               <div className="file-size">
-                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                {(selectedFiles.reduce((sum, f) => sum + f.size, 0) / 1024 / 1024).toFixed(2)} MB
               </div>
             </div>
             <button className="btn btn-primary" onClick={sendFile}>
-              Upload File
+              Upload Files
             </button>
           </div>
         )}
